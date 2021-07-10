@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="css/mui.css"/>
+	<link rel="stylesheet" type="text/css" href="css/chat.css"/>
+</head>
+<body>
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	<h1 class="mui-title" id="name_title"></h1>
+</header>
+<div class="mui-content" id='chat_board'>
+	<audio style="width: 100%"  id="chat_audio" src='' ></audio>
+	
+<!-- 	<div class='leftd'>
+		<span class="leftd_h">
+			<img src="avator/toy.jpg" >
+		</span>
+		<div class = "left speech">
+			点击播放消息
+		</div>
+	</div>
+	<div class='rightd'>
+		<span class="rightd_h">
+			<img src="avator/baba.png" >
+		</span>
+		<div class = "right speech">
+			点击播放消息
+		</div>
+	</div>
+ -->
+ </div>
+<nav class="mui-bar mui-bar-tab">
+	<a class="mui-tab-item mui-active" id="talk">
+		<span class="mui-icon mui-icon-speech"></span>
+		<span class="mui-tab-label">按住说话</span>
+	</a>
+</nav>
+	
+
+</body>
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+	var Sdata = null;
+	var reco = null;
+	var filename;
+
+	
+	mui.init({
+	  gestureConfig:{
+	   doubletap: false, //默认为false
+	   longtap: false, //默认为false
+	   swipe: false, //默认为true
+	   drag: false, //默认为true
+	   hold:true,//默认为false，不监听
+	   release:true,//默认为false，不监听
+	  },
+	  });
+	mui.plusReady(function () {
+	    Sdata = plus.webview.currentWebview();
+		// console.log(JSON.stringify(Sdata))
+		document.getElementById("name_title").innerText=Sdata['friend_name']
+		
+		mui.post(window.serv + '/chat_list',{
+				from_user:window.localStorage.getItem('id'),
+				to_user:Sdata.friend_id
+			},function(data){
+				
+				// var index_page = plus.webview.getWebviewById('HBuilder')
+				// mui.fire(index_page,'update_badge',{})
+				
+				
+				console.log(JSON.stringify(data))
+
+				for (var i = 0; i < data.length; i++) {
+						create_chat(data[i]['person'],data[i]['avatar'],data[i]['msg']);
+				}
+			},'json'
+		);
+	}) 
+
+	document.getElementById('talk').addEventListener('hold',function () {
+		reco = plus.audio.getRecorder();
+		reco.record( {filename:"_doc/audio/",format:"amr"}, function (path) {
+			// alert( "Audio record success!" + path);
+			createUpload(path);
+			create_chat('self',null,path)
+		}, function ( e ) {
+			alert( "Audio record failed: " + e.message );
+		} );  
+		mui.toast("start")
+	})
+	document.getElementById('talk').addEventListener('release',function () {
+		reco.stop()
+		mui.toast("stop")
+	})
+	
+	document.addEventListener('toy_talk',function(data){
+		var send_str = data.detail;
+		// console.log(JSON.stringify(send_str));
+		if (Sdata.friend_id == send_str.from_user){
+			create_chat('',null,send_str.chats);
+		}
+	})
+	// 创建上传任务
+	function createUpload(path) {
+		var task = plus.uploader.createUpload( window.serv + "/uploader", 
+			{ method:"POST",priority:100 },
+			function ( t, status ) {
+				// 上传完成
+				if ( status == 200 ) {  
+					// console.log(JSON.stringify(t))
+					// console.log(t.responseText)
+					filename = JSON.parse(t.responseText).data.filename
+					// console.log(filename)
+					var index = plus.webview.getWebviewById('HBuilder')
+					mui.fire(index,'send_chat',{to_user:Sdata['friend_id'],from_user:window.localStorage.getItem('id'),chats:filename})
+					// alert( "Upload success: " + t.url );
+				} else {
+					alert( "Upload failed: " + status );
+				}
+			}
+		);
+		task.addFile( path, {key:"recorder"} );
+		task.addData( "from_user", window.localStorage.getItem('id') );
+		task.addData('to_user', Sdata['friend_id'])
+		//task.addEventListener( "statechanged", onStateChanged, false );
+		task.start();
+	}
+	
+	function create_chat(who,avatar,chat){
+		var pic = avatar;
+		
+		// if (who == 'self'){ //user
+		// 	mui.ajax(window.serv + '/auto_login',{
+		// 		data:{
+		// 			_id:window.localStorage.getItem('id'),
+		// 			// 'xxx':"xxxxxxxxxxxxxxxx"
+		// 		},
+		// 		async:false,
+		// 		dataType:'json',
+		// 		type:'POST',
+		// 		timeout:10000,
+		// 		// headers:{'Content-Type':'application/json'},
+		// 		success:function(data){
+		// 			// console.log(JSON.stringify(data));
+		// 			pic = data.data['avatar'];
+		// 		},
+		// 		error:function(xhr,type,errorThrown){
+		// 			console.log(type);
+		// 		}
+		// 	});
+		// 	// mui.post(window.serv + '/auto_login',{
+		// 	// 		_id:window.localStorage.getItem('id'),
+		// 	// 	},function(data){
+		// 	// 		pic = data.data['avatar']
+		// 	// 	},'json'
+		// 	// );
+		// }else{//toy
+		// 	pic = Sdata['friend_avatar'];
+		// }
+		
+
+		var div1 =document.createElement("div");
+		var span = document.createElement("span");
+		var img = document.createElement("img")
+		// console.log(pic)
+		img.src = 'avator/' + pic; 
+		var div2 = document.createElement("div");
+		
+		if (chat.toString().indexOf("_")> -1){
+			chat = chat; //本地消息
+			div2.onclick = function(){
+				console.log(chat)
+				var player = plus.audio.createPlayer(chat)
+				player.play(function(){
+					console.log("play ok");
+				},function(e){
+					console.log(JSON.stringify(e));
+				});
+			}
+		}else{
+			chat = window.serv_chat + chat; //远程消息
+			div2.onclick = function(){
+				console.log(chat)
+				a = document.getElementById("chat_audio").src=chat;
+				// a.crossOrigin = 'anonymous';
+				document.getElementById("chat_audio").play();
+			}
+		}
+		
+		div2.innerText = '点击播放消息';
+
+		
+		if (who == 'self'){
+			div1.className = 'rightd';
+			span.className = 'rightd_h';
+			div2.className = 'right speech';
+		}else{
+			div1.className = 'leftd';
+			span.className = 'leftd_h';
+			div2.className = 'left speech';			
+		}
+		
+		
+		span.appendChild(img)
+		div1.appendChild(span)
+		div1.appendChild(div2)
+		
+		document.getElementById('chat_board').appendChild(div1);
+	}
+	
+	
+	var old_back = mui.back;  
+	mui.back=function(){
+		// console.log("back")
+		
+		mui.post(window.serv + '/chat_list',{
+				from_user:window.localStorage.getItem('id'),
+				to_user:Sdata.friend_id
+			},function(data){
+				var index_page = plus.webview.getWebviewById('HBuilder')
+				mui.fire(index_page,'update_badge',{})
+				
+				old_back()
+			},'json'
+		);
+
+	}
+	</script>
+</html>

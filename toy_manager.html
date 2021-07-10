@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<body>
+	<header class="mui-bar mui-bar-nav">
+		<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		<h1 class="mui-title">管理我的玩具</h1>
+	</header>
+	<div class="mui-content">
+		<ul class="mui-table-view" id="toy_list">
+			<li class="mui-table-view-cell mui-media">
+				<a href="javascript:;" id='add_bind'>
+					<img class="mui-media-object mui-pull-left" src="image/add.jpg">
+					<div class="mui-media-body">
+						添加绑定玩具
+						<p class="mui-ellipsis">点击此处开始扫描玩具二维码</p>
+					</div>
+				</a>
+			</li>
+		</ul>
+	</div>
+	
+
+</body>
+<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	mui.init()
+	mui.plusReady(function () {
+	    mui.post(window.serv + '/toy_list',{
+	    		user_id:window.localStorage.getItem('id')
+	    	},function(data){
+	    		// console.log(JSON.stringify(data));
+				for (var i = 0; i < data.data.length; i++) {
+					create_item(data.data[i])
+				}
+	    	},'json'
+	    );
+	})
+	
+	
+	document.getElementById('add_bind').addEventListener('tap',function () {
+		mui.openWindow({
+			url:"scanQR.html",
+			id:'scanQR.html',
+			extras:{type:'app'}
+		})
+	})
+	
+	function create_item(data){
+		var li = document.createElement('li');
+		li.id = data['_id']
+		li.className = "mui-table-view-cell mui-media";
+		// console.log(li.id)
+		var a = document.createElement('a');
+		a.onclick = function(){
+			mui.openWindow({
+				url:"toy_info.html",
+				id:"toy_info.html",
+				extras:data
+			})
+		}
+		var img = document.createElement('img');
+		img.className = "mui-media-object mui-pull-left";
+		// img.src = window.serv_image +data['avatar'];
+		img.src = 'avator/' + data['avatar']
+		// console.log(img.src)
+		var div = document.createElement('div');
+		div.className = "mui-media-body";
+		div.innerText = data['baby_name'];
+		var p = document.createElement('p');
+		p.className = "mui-ellipsis";
+		p.innerText = data['toy_name'];
+		
+		li.appendChild(a);
+		a.appendChild(img);
+		a.appendChild(div);
+		div.appendChild(p);
+		
+		document.getElementById('toy_list').appendChild(li);
+	}
+</script>
+</html>

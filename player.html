@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link rel="stylesheet" href="css/progressbar.css">
+		<link href="css/mui.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title" id="title">正在播放</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-row" style="text-align: center; margin-top: 10px;">
+				<img src="" id="cover" style="width: 150px;height: 150px;border-radius: 50%;"/>
+			</div>
+		<!-- <button type="button" id="sendtoremote" class="mui-btn mui-btn-yellow mui-btn-block">发送</button> -->
+			<style>
+				#popover {
+					width: 200px;
+					height: 100px;
+				}
+			</style>
+			<div id="popover" class="mui-popover">
+				<div class="mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<ul class="mui-table-view" id='toy_list'>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<a href="#popover" id="openPopover" class="mui-btn mui-btn-primary mui-btn-block">发送到玩具</a>
+
+			<audio style="width: 100%"  id="music" src=''></audio>
+		</div>
+	</body>
+	<script src="js/mui.js"></script>
+	<script type="text/javascript">
+		mui.init()
+		mui('.mui-scroll-wrapper').scroll()
+		var Sdata = null;
+		var player = null;
+
+		mui.plusReady(function(){
+			Sdata = plus.webview.currentWebview();
+			// console.log(JSON.stringify(Sdata))
+			document.getElementById("title").innerText = "正在播放" + Sdata.title;
+			document.getElementById("cover").src = window.serv_image + Sdata.cover_path;
+			// audio_str = `http://iscm.f3322.org:5000/fsdownload/webapi/file_download.cgi/${Sdata.audio_path}?dlink=%222fe69c89e5a3b0e4b9a6202d20e58898e68588e6aca3202d20e4b889e4bd93202d20e99d92e99baae6bc94e692ad202d204d34412fe7acace4b889e5ada320e6adbbe7a59ee6b0b8e7949f2f3031332e6d7033%22&_sharing_id=%22pVu1enZed%22`
+			// document.getElementById("music").src = audio_str;
+			document.getElementById("music").src = window.serv_audio + Sdata.audio_path;
+			
+			mui.post(window.serv + '/toy_list',{
+					user_id:window.localStorage.getItem('id')
+				},function(data){
+					let toy_list=[];
+					toy_list = data.data;
+					// console.log(JSON.stringify(toy_list[0]))
+					for (var i = 0; i < toy_list.length; i++) {
+						// console.log(JSON.stringify(toy_list[i]))
+						toy=toy_list[i]
+						// console.log(JSON.stringify(toy))
+						createToyItem(toy)
+					}
+				},'json'
+			);
+			
+
+			
+
+			audio.play()
+			// player.play()
+		})
+		
+
+		// document.getElementById('sendtoremote').addEventListener('tap',function () {
+		// 	var index = plus.webview.getWebviewById("HBuilder")
+		// 	mui.fire(index,'send_music',{to_user:"toy123",music:Sdata.audio_path})
+		// })
+	
+	
+		
+	  const audio = document.getElementById('music')
+	  
+	  audio.controls = true;
+	  
+	  function createToyItem(data)
+	  {
+		  var li = document.createElement('li')
+		  li.id = data['_id']
+		  li.className = "mui-table-view-cell";
+		  
+		  var a = document.createElement('a')
+		  a.innerText=data['baby_name']+' '+data['toy_name']
+		  
+		  a.onclick = function(){
+			  var index = plus.webview.getWebviewById("HBuilder")
+			  mui.fire(index,'send_music',{to_user:data['_id'],
+			  					from_user:window.localStorage.getItem('id'),
+			  					music:Sdata.audio_path})
+		  }
+		  // console.log(a.innerText)
+		  li.appendChild(a)
+		  
+		  document.getElementById("toy_list").appendChild(li)
+	  }
+
+	</script>
+
+</html>

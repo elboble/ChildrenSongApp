@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<body>
+	<header class="mui-bar mui-bar-nav">
+		<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		<h1 class="mui-title">添加好友请求</h1>
+	</header>
+	<div class="mui-content">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>请求信息</label>
+			<input type="text" class="mui-input-clear" placeholder="请告诉好友你是谁" id="req_info">
+			</div>
+			<div class="mui-input-row">
+				<label>好友备注</label>
+				<input type="text" class="mui-input-clear" placeholder="好友昵称" id="friend_remark">
+			</div>
+			<div class="mui-row">
+				<span>**好友备注发音尽量不要出现重复</span>
+			</div>
+			<div class="mui-button-row">
+				<button type="button" class="mui-btn mui-btn-primary" id='add_req'>确认</button>
+				<button type="button" class="mui-btn mui-btn-danger mui-action-back" >取消</button>
+			</div>
+		</form>
+	</div>
+	
+
+</body>
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+	var Sdata = null;
+	mui.init()
+	mui.plusReady(function () {
+	    Sdata = plus.webview.currentWebview()
+		console.log(JSON.stringify(Sdata))
+	})
+	document.getElementById('add_req').addEventListener('tap',function () {
+		var add_user_id = Sdata.type == 'app'? window.localStorage.getItem('id') : Sdata.toy_id ;
+		mui.post(window.serv + '/add_req',{
+				add_user_id : add_user_id,
+				friend_type : Sdata.type,
+				friend_id : Sdata.friend_id,
+				req_info:document.getElementById("req_info").value,
+				friend_remark:document.getElementById("friend_remark").value,
+				req_avatar:"",
+				status:0
+			},function(data){
+				console.log(JSON.stringify(data.data))
+				mui.openWindow({
+					url:'req_list.html',
+					id:'req_list.html',
+				})
+			},'json'
+		);
+	})
+	</script>
+</html>

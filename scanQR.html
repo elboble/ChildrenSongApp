@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<body>
+	<header class="mui-bar mui-bar-nav">
+		<h1 class="mui-title">扫描玩具二维码</h1>
+	</header>
+	<div class="mui-content">
+		<div id="bcid" style="width: 100%;height: 750px;"></div>
+	</div>
+	
+	
+</body>
+<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	var scan = null;
+	var Sdata = null;
+	
+	function onmarked( type, result ) {
+		var text = '未知: ';
+		switch(type){
+			case plus.barcode.QR:
+			text = 'QR: ';
+			break;
+			case plus.barcode.EAN13:
+			text = 'EAN13: ';
+			break;
+			case plus.barcode.EAN8:
+			text = 'EAN8: ';
+			break;
+		}
+
+		// alert( text+result );
+		if (result == Sdata.toy_dev_key){
+			mui.toast("不能自己添加自己为好友,请换个码扫");
+			return
+		}
+			
+		mui.post(window.serv + '/validate_code',{
+				device_key:result
+			},function(data){
+				if(data.code == 0 && Sdata.type == 'app'){
+					//app绑定玩具
+					mui.openWindow({
+						url:'bind_toy.html',
+						id:'bind_toy.html',
+						extras:data.data
+					})
+					
+				}else if ( data.code == 2){
+					//二维码有误
+					console.log(JSON.stringify(data));
+					mui.toast(data.msg)
+					mui.back()
+				}else if (data.code ==1 ){
+					//添加好友
+					// console.log(JSON.stringify(data))
+					mui.openWindow({
+						url:'add_req.html',
+						id:'add_req.html',
+						extras:{type:Sdata.type,toy_id:Sdata.toy_id,friend_id:data.data._id,}
+					})
+				}else{
+					//玩具不能添加玩具
+					mui.toast('玩具不能绑定玩具')
+					mui.back()
+				}
+
+			},'json'
+		);
+	}
+	
+	mui.init();
+	mui.plusReady(function () {
+		Sdata = plus.webview.currentWebview()
+		// console.log(JSON.stringify(Sdata))
+		scan = new plus.barcode.Barcode('bcid');
+		scan.onmarked = onmarked;
+		// scan.start();
+		// onmarked(plus.barcode.QR,"664c2ed4179bc8007cb4aca16451806e");
+		onmarked(plus.barcode.QR,"cdbab89b83817795598bb63dc4847f93");
+		// onmarked(plus.barcode.QR,"87eb2c3973fea54683abf41943ee4a31")
+		// mui.back()
+	})
+
+</script>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<body>
+	
+<nav class="mui-bar mui-bar-tab">
+	<a class="mui-tab-item mui-active" id = "index">
+		<span class="mui-icon mui-icon-home"></span>
+		<span class="mui-tab-label">首页</span>
+	</a>
+	<a class="mui-tab-item" id='friend_list'>
+		<span class="mui-icon mui-icon-chat"><span class="mui-badge mui-badge-blue" style="display: inline;" id='message_count'>5</span></span>
+		<span class="mui-tab-label">好友消息</span>
+	</a>
+	<a class="mui-tab-item" id='req'>
+		<span class="mui-icon mui-icon-email"></span>
+		<span class="mui-tab-label">好友请求</span>
+	</a>
+	<a class="mui-tab-item" id ="self">
+		<span class="mui-icon mui-icon-gear"></span>
+		<span class="mui-tab-label">个人中心</span>
+	</a>
+</nav>
+</body>
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+	var msg_count_dict = null;
+	mui.init({
+		subpages:[{
+			url:'main.html',
+			id:'main.html',
+			styles:{
+				top:'0px',//mui标题栏默认高度为45px；
+				bottom:'50px'//默认为0px，可不定义；
+			},
+			createNew:true
+		}]
+	}); 
+	
+	
+	mui.plusReady(function () {
+		update_friend_message_count()
+	})
+	var ws = null;
+
+	function ws_onmessage(data){
+		// console.log(data.data)
+		chat_page = plus.webview.getWebviewById('chats.html');
+		mui.fire(chat_page,'toy_talk',JSON.parse(data.data))
+		update_friend_message_count()
+
+	}
+	
+	function create_ws(id){
+		// console.log(id)
+		ws = new WebSocket(window.wss_serv +'/app/' + id);
+
+		// ws.onopen = function(){
+		// 	console.log(JSON.stringify(ws));		
+		// }
+		ws.onmessage = function(data){
+			ws_onmessage(data);
+		}		
+		ws.onclose = function(){
+			console.log('Reconnecting...')
+			setTimeout(function(){
+				create_ws(id)
+			},1000)
+		}
+	}
+	
+	if (window.localStorage.getItem('id')){
+		id = window.localStorage.getItem('id')
+		create_ws(id)
+	}
+	
+	document.addEventListener("send_music",function(data){
+		var send_str = data.detail;
+		ws.send(JSON.stringify(send_str));
+	})
+	
+	document.addEventListener("send_chat",function(data){
+		var send_str = data.detail;
+		// console.log(JSON.stringify(send_str))
+		ws.send(JSON.stringify(send_str));
+	})
+	
+	document.addEventListener("new_ws",function(data){
+		// console.log(JSON.stringify(data.detail))
+		id=data.detail.id
+		// ws = new WebSocket(window.wss_serv +'/app/' + id);
+		create_ws(id)
+	})
+	
+	document.getElementById('self').addEventListener('tap',function () {
+		if(window.localStorage.getItem('id')){
+			mui.post(window.serv+'/auto_login',{
+					_id:window.localStorage.getItem('id')
+				},function(data){
+					// console.log(JSON.stringify(data.data))
+					mui.openWindow({
+						url:"userinfo.html",
+						id:"userinfo.html",
+						  styles:{
+							top:'0px',//mui标题栏默认高度为45px；
+							bottom:'50px'//默认为0px，可不定义；
+						  },
+						extras:data.data,
+						createNew:true
+					})
+				},'json'
+			);
+
+		}else{
+			mui.openWindow({
+				url:"login.html",
+				id:"login.html",
+				styles:{
+					top:"0px",
+					bottom:"50px",
+				}
+			})
+		}
+	})
+	
+	document.getElementById('index').addEventListener('tap',function () {
+		mui.openWindow({
+			url:"main.html",
+			id:"main.html",
+			styles:{
+				top:"0px",
+				bottom:"50px",
+			}
+		})
+	})
+	
+	
+	document.getElementById('friend_list').addEventListener('tap',function () {
+		mui.openWindow({
+			url:'friend_list.html',
+			id:'friend_list.html',
+			styles:{
+				top:"0px",
+				bottom:"50px",
+			},
+			extras:msg_count_dict,
+			createNew:true
+		})
+	})
+	
+	
+	function update_friend_message_count(){
+		mui.post(window.serv + '/chat_count',{
+				from_user:window.localStorage.getItem('id')
+			},function(data){
+				console.log(JSON.stringify(data));
+				
+				msg_count_dict = data.data
+				msg_count_id = document.getElementById("message_count")
+				if (msg_count_dict['count'] <= 0){
+					msg_count_id.style = 'display: none;'
+					msg_count_id.innerText=0;
+				}else{
+					msg_count_id.style = 'display: inline;'
+					msg_count_id.innerText=msg_count_dict['count']					
+				}
+				friend_list_page = plus.webview.getWebviewById('friend_list.html')
+				mui.fire(friend_list_page,'update_count',{data})
+			},'json'
+		);
+
+	}
+	
+	document.addEventListener('update_badge',function(data){
+		// console.log('update_badge')
+		update_friend_message_count()
+	})
+	
+	document.getElementById('req').addEventListener('tap',function () {
+	    mui.openWindow({
+			url:'req_list.html',
+			id:'req_list.html',
+			extras:{}
+		})    
+	})
+	</script>
+</html> 

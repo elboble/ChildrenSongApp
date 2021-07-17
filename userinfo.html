@@ -48,7 +48,9 @@
 		document.getElementById("avator").src = 'avator/'+ Sdata.avatar;
 		document.getElementById("nickname").innerText = Sdata.nickname;
 		document.getElementById("username").innerText = Sdata.username;
-		var index = plus.webview.getWebviewById("HBuilder")
+		// var index = plus.webview.getWebviewById("HBuilder")
+		var myappid = plus.runtime.appid;
+		var index = plus.webview.getWebviewById(myappid)
 		mui.fire(index,'new_ws',{id:Sdata._id})
 	})
 	document.getElementById("logout_btn").addEventListener('tap',function () {

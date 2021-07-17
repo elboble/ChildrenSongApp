@@ -47,6 +47,7 @@
 	var Sdata = null;
 	var reco = null;
 	var filename;
+	var leftpic = null;
 
 	
 	mui.init({
@@ -64,6 +65,14 @@
 		// console.log(JSON.stringify(Sdata))
 		document.getElementById("name_title").innerText=Sdata['friend_name']
 		
+		mui.post(window.serv+ '/auto_login',{
+				_id : window.localStorage.getItem('id'),
+			},function(data){
+				// console.log(data.data)
+				leftpic = data.data['avatar']
+			},'json'
+		);
+		
 		mui.post(window.serv + '/chat_list',{
 				from_user:window.localStorage.getItem('id'),
 				to_user:Sdata.friend_id
@@ -73,7 +82,7 @@
 				// mui.fire(index_page,'update_badge',{})
 				
 				
-				console.log(JSON.stringify(data))
+				// console.log(JSON.stringify(data))
 
 				for (var i = 0; i < data.length; i++) {
 						create_chat(data[i]['person'],data[i]['avatar'],data[i]['msg']);
@@ -87,7 +96,7 @@
 		reco.record( {filename:"_doc/audio/",format:"amr"}, function (path) {
 			// alert( "Audio record success!" + path);
 			createUpload(path);
-			create_chat('self',null,path)
+			create_chat('self',leftpic,path)
 		}, function ( e ) {
 			alert( "Audio record failed: " + e.message );
 		} );  
@@ -116,7 +125,9 @@
 					// console.log(t.responseText)
 					filename = JSON.parse(t.responseText).data.filename
 					// console.log(filename)
-					var index = plus.webview.getWebviewById('HBuilder')
+					// var index = plus.webview.getWebviewById('HBuilder')
+					var myappid = plus.runtime.appid;
+					var index = plus.webview.getWebviewById(myappid)
 					mui.fire(index,'send_chat',{to_user:Sdata['friend_id'],from_user:window.localStorage.getItem('id'),chats:filename})
 					// alert( "Upload success: " + t.url );
 				} else {
@@ -185,7 +196,7 @@
 		}else{
 			chat = window.serv_chat + chat; //远程消息
 			div2.onclick = function(){
-				console.log(chat)
+				// console.log(chat)
 				a = document.getElementById("chat_audio").src=chat;
 				// a.crossOrigin = 'anonymous';
 				document.getElementById("chat_audio").play();
@@ -222,7 +233,9 @@
 				from_user:window.localStorage.getItem('id'),
 				to_user:Sdata.friend_id
 			},function(data){
-				var index_page = plus.webview.getWebviewById('HBuilder')
+				// var index_page = plus.webview.getWebviewById('HBuilder')
+				var myappid = plus.runtime.appid;
+				var index_page = plus.webview.getWebviewById(myappid)
 				mui.fire(index_page,'update_badge',{})
 				
 				old_back()

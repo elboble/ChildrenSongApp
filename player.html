@@ -52,7 +52,13 @@
 			document.getElementById("cover").src = window.serv_image + Sdata.cover_path;
 			// audio_str = `http://iscm.f3322.org:5000/fsdownload/webapi/file_download.cgi/${Sdata.audio_path}?dlink=%222fe69c89e5a3b0e4b9a6202d20e58898e68588e6aca3202d20e4b889e4bd93202d20e99d92e99baae6bc94e692ad202d204d34412fe7acace4b889e5ada320e6adbbe7a59ee6b0b8e7949f2f3031332e6d7033%22&_sharing_id=%22pVu1enZed%22`
 			// document.getElementById("music").src = audio_str;
-			document.getElementById("music").src = window.serv_audio + Sdata.audio_path;
+			if (Sdata.subclass.search('santi') != -1){
+				document.getElementById("music").src = window.data_server + '/' + Sdata.nickname + '/' + Sdata.audio_path;
+				console.log(document.getElementById("music").src)
+			}else{
+				document.getElementById("music").src = window.serv_audio + Sdata.audio_path;
+			}
+
 			
 			mui.post(window.serv + '/toy_list',{
 					user_id:window.localStorage.getItem('id')
@@ -98,10 +104,17 @@
 		  a.innerText=data['baby_name']+' '+data['toy_name']
 		  
 		  a.onclick = function(){
-			  var index = plus.webview.getWebviewById("HBuilder")
+			  
+			  // console.log(myappid)
+			  // var index = plus.webview.getWebviewById("HBuilder")
+			  var myappid = plus.runtime.appid;
+			  var index = plus.webview.getWebviewById(myappid)
 			  mui.fire(index,'send_music',{to_user:data['_id'],
 			  					from_user:window.localStorage.getItem('id'),
-			  					music:Sdata.audio_path})
+			  					music:Sdata.audio_path,
+								subclass:Sdata.subclass,
+								nickname:Sdata.nickname,
+								})
 		  }
 		  // console.log(a.innerText)
 		  li.appendChild(a)

@@ -8,13 +8,16 @@
  * @type _L4.$|Function
  */
 
-window.serv = "https://xliyang.cn:8900";
+window.serv = "https://cs.xliyang.cn";
+// window.serv = "https://192.168.8.123:8900";
 window.serv_image = window.serv + "/get_image/";
 window.serv_audio = window.serv + "/get_audio/";
 window.serv_chat = window.serv + "/get_chat/";
 window.serv_qr = window.serv + "/get_qrcode/";
+window.data_server = 'https://iscm.webredirect.org:50124/files/datahouse'
 
-window.wss_serv = "wss://xliyang.cn:3721";
+window.wss_serv = "wss://xliyang.cn/wss";
+// window.wss_serv = "wss://192.168.8.123:3721";
 
 
 var mui = (function(document, undefined) {

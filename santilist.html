@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	<h1 class="mui-title" id="page_title"></h1>
+</header>
+<div class="mui-content">
+<ul class="mui-table-view" id='content_list'>
+</ul>	
+</div>
+
+<body>
+	
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+	mui.init()
+	
+	mui.plusReady(function(){
+		Sdata = plus.webview.currentWebview();
+		// console.log(JSON.stringify(Sdata))
+
+		mui.post(window.serv+'/content_list',{
+				subclass:Sdata['subclass']
+			},function(data){
+				document.getElementById("page_title").innerText = data.data[0].nickname
+				// console.log(JSON.stringify(data.data))
+				for (var i = 0; i < data.data.length; i++) {
+					document.getElementById('content_list').appendChild(create_item(data.data[i]));
+				}
+			},'json'
+		);
+	})
+	
+	function create_item(data){
+		var li = document.createElement('li');
+		li.id = data['_id']
+		li.className = "mui-table-view-cell mui-media";
+		// console.log(li.id)
+		var a = document.createElement('a');
+		a.onclick = function(){
+			mui.openWindow({
+				url:"player.html",
+				id:"player.html",
+				extras:data
+			})
+		}
+		var img = document.createElement('img');
+		img.className = "mui-media-object mui-pull-left";
+		img.src = window.serv_image +data['cover_path'];
+		// console.log(img.src)
+		var div = document.createElement('div');
+		div.className = "mui-media-body";
+		div.innerText = data['title'];
+		var p = document.createElement('p');
+		p.className = "mui-ellipsis";
+		p.innerText = data['nickname'];
+		
+		li.appendChild(a);
+		a.appendChild(img);
+		a.appendChild(div);
+		div.appendChild(p);
+		
+		return li
+	}
+	</script>
+</body>
+</html>

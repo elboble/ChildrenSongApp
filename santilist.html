@@ -11,38 +11,62 @@
 	<h1 class="mui-title" id="page_title"></h1>
 </header>
 <div class="mui-content">
+	<div class="mui-input-row mui-checkbox mui-left">
+	  <label>自动播放下一集</label>
+	  <input name="checkbox1" value="Item 1" type="checkbox" id='auto_next'>
+	</div>
+
 <ul class="mui-table-view" id='content_list'>
-</ul>	
+</ul>
+
 </div>
 
 <body>
 	
 	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
+	var content_data = null;
+	var auto_next ;
 	mui.init()
 	
 	mui.plusReady(function(){
 		Sdata = plus.webview.currentWebview();
 		// console.log(JSON.stringify(Sdata))
-
+		auto_next = window.localStorage.getItem('auto_next', "false")
+		// console.log(auto_next)
+		pre_audio = {};
+		next_audio = {};
 		mui.post(window.serv+'/content_list',{
 				subclass:Sdata['subclass']
 			},function(data){
-				document.getElementById("page_title").innerText = data.data[0].nickname
+				content_data = data.data;
+				document.getElementById("page_title").innerText = content_data[0].nickname
 				// console.log(JSON.stringify(data.data))
-				for (var i = 0; i < data.data.length; i++) {
-					document.getElementById('content_list').appendChild(create_item(data.data[i]));
+				for (var i = 0; i < content_data.length; i++) {
+					if(i>0)
+						pre_audio = JSON.parse(JSON.stringify(content_data[i-1]))
+					if(i<content_data.length-1)
+						next_audio = JSON.parse(JSON.stringify(content_data[i+1]))
+					document.getElementById('content_list').appendChild(create_item(pre_audio,JSON.parse(JSON.stringify(content_data[i])),next_audio));
 				}
 			},'json'
 		);
+		// console.log(auto_next)
+		// document.getElementById("auto_next").checked = auto_next;
+		document.getElementById("auto_next").checked = auto_next == "true" ? auto_next : '';
+		// console.log(document.getElementById("auto_next").checked)
 	})
 	
-	function create_item(data){
+	function create_item(pre,data,next){
 		var li = document.createElement('li');
 		li.id = data['_id']
 		li.className = "mui-table-view-cell mui-media";
 		// console.log(li.id)
 		var a = document.createElement('a');
+		// data['auto_next']= auto_next;
+		// data['next_audio'] = next ;
+		// data['pre_audio'] = pre ;
+		// console.log(JSON.stringify(data))
 		a.onclick = function(){
 			mui.openWindow({
 				url:"player.html",
@@ -68,6 +92,64 @@
 		
 		return li
 	}
+	
+	document.addEventListener('pre',function(data){
+		// console.log("jjjj")
+		// console.log(JSON.stringify(data.detail))
+		for (var i = 0; i < content_data.length; i++) {
+			// console.log(JSON.stringify(content_data[i]))
+				
+
+			if(data.detail["Sdata"]["audio_path"] == content_data[i]["audio_path"]){
+					// console.log(content_data[i]["audio_path"])
+					if (i==0){
+						mui.toast("已是第一首")
+						return
+					}
+					mui.openWindow({
+						url:'player.html',
+						id:'player.html',
+						extras:content_data[i-1],
+						createNew:true
+						})
+			}
+		}
+	})
+	
+	document.addEventListener('next',function(data){
+		// console.log("jjjj")
+		// console.log(JSON.stringify(data.detail))
+		for (var i = 0; i < content_data.length; i++) {
+			// console.log(JSON.stringify(content_data[i]))
+			
+			if(data.detail["Sdata"]["audio_path"] == content_data[i]["audio_path"]){
+					if (i==content_data.length-1){
+						mui.toast("已是最后一首")
+						return
+					}
+					mui.openWindow({
+						url:'player.html',
+						id:'player.html',
+						extras:content_data[i+1],
+						createNew:true
+						})
+			}
+		}
+	})
+	
+	document.getElementById('auto_next').addEventListener('tap',function () {
+	        val = window.localStorage.getItem('auto_next');
+			// console.log(typeof(val))
+			if (val == 'true' ){
+				window.localStorage.setItem('auto_next',"false")
+			}else{
+				window.localStorage.setItem('auto_next',"true")
+			}
+			
+			// console.log(window.localStorage.getItem('auto_next'))
+	})
+	
+
 	</script>
 </body>
 </html>

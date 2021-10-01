@@ -9,7 +9,7 @@
  */
 
 window.serv = "https://cs.xliyang.cn";
-// window.serv = "https://192.168.8.123:8900";
+// window.serv = "https://192.168.11.92:8900";
 window.serv_image = window.serv + "/get_image/";
 window.serv_audio = window.serv + "/get_audio/";
 window.serv_chat = window.serv + "/get_chat/";

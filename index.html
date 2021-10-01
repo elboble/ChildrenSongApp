@@ -29,7 +29,7 @@
 </body>
 	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
-	var msg_count_dict = null;
+	var msg_count_dict = {"code":0,"data":0,"msg":"获取未读消息数"};
 	mui.init({
 		subpages:[{
 			url:'main.html',
@@ -180,6 +180,8 @@
 		// console.log('update_badge')
 		update_friend_message_count()
 	})
+	
+
 	
 	document.getElementById('req').addEventListener('tap',function () {
 	    mui.openWindow({
